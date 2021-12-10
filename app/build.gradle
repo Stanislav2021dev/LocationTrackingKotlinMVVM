@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.locationtask8"
-        minSdk 28
+        minSdk 29
         targetSdk 31
         versionCode 1
         versionName "1.0"
@@ -59,18 +59,27 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0'
+    testImplementation 'junit:junit:4.+'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
+    implementation 'com.google.android.gms:play-services-location:18.0.0'
+    implementation 'com.google.android.gms:play-services-maps:18.0.0'
 
     //Navigation
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
     implementation 'androidx.navigation:navigation-dynamic-features-fragment:2.3.5'
 
-    implementation 'com.google.android.gms:play-services-maps:18.0.0'
+    //WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.7.1")
+    implementation "androidx.work:work-multiprocess:2.7.1"
 
-    testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+    //courutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0-RC'
+
 
     //firebase
     implementation platform('com.google.firebase:firebase-bom:29.0.1')
