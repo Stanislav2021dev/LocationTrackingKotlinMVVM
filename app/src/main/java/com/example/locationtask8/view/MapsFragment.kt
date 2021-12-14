@@ -13,6 +13,8 @@ import android.view.ViewGroup
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModelProvider
 import com.example.locationtask8.R
+import com.example.locationtask8.di.AppComponent
+import com.example.locationtask8.di.DaggerAppComponent
 import com.example.locationtask8.viewmodel.LogInViewModel
 import com.example.locationtask8.viewmodel.TrackViewModel
 
@@ -22,21 +24,25 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.tasks.OnSuccessListener
+import javax.inject.Inject
 
-class MapsFragment : Fragment() {
+class MapsFragment : Fragment(),OnMapReadyCallback {
     private val LOCATION_PERMISSION_REQUEST_CODE = 222
     private val FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION
     private val BACKGROUND_LOCATION = Manifest.permission.ACCESS_BACKGROUND_LOCATION
     private lateinit var permissions: Array<String>
     private lateinit var mMap:GoogleMap
 
-    private var trackViewModel : TrackViewModel = TrackViewModel(application = Application())
+    @Inject lateinit var trackViewModel : TrackViewModel
 
-    private val callback = OnMapReadyCallback { googleMap ->
-        mMap=googleMap
+
+    override fun onMapReady(map: GoogleMap) {
         val sydney = LatLng(-34.0, 151.0)
-        googleMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+        mMap=map
+        map.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
+        map.moveCamera(CameraUpdateFactory.newLatLng(sydney))
+
     }
 
     override fun onCreateView(inflater: LayoutInflater,container: ViewGroup?,
@@ -47,11 +53,14 @@ class MapsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
-        mapFragment?.getMapAsync(callback)
+        mapFragment?.getMapAsync(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val appComponent: AppComponent = DaggerAppComponent.create()
+        appComponent.inject(this)
 
         trackViewModel =
             ViewModelProvider(this).get(TrackViewModel::class.java)
@@ -68,9 +77,7 @@ class MapsFragment : Fragment() {
         }
         else {
             ActivityCompat.requestPermissions(requireActivity(),permissions,LOCATION_PERMISSION_REQUEST_CODE)
-
         }
-
     }
 
     @SuppressLint("MissingPermission")
@@ -84,4 +91,6 @@ class MapsFragment : Fragment() {
         }
 
     }
+
+
 }

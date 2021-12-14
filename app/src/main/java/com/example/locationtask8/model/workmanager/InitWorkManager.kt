@@ -1,22 +1,29 @@
 package com.example.locationtask8.model.workmanager
 
 import android.app.Application
+import android.content.Context
 import androidx.work.*
+import com.example.locationtask8.di.AppComponent
+import com.example.locationtask8.di.DaggerAppComponent
 import com.example.locationtask8.model.ResultClass
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class InitWorkManager(application: Application) {
-    private val app:Application
-    init {
-        app=application
+class InitWorkManager @Inject constructor() {
+    @Inject lateinit var context:Context
+    val UPLOADTAG = "UPLOAD_WORK"
+    val WORKTAG="CURRENT_WORK"
+    init{
+        val appComponent: AppComponent = DaggerAppComponent.create()
+        appComponent.inject(this)
     }
+
     fun initWork(result:ResultClass){
 
         val inputData = Data.Builder()
-//            .putString("DateTime", result.getCurrentTime())
-           // .putString("Coordinates", result.getCurrentLocation().toString())
+            .putString("DateTime", result.getCurrentTime())
+            .putString("Coordinates", result.getCurrentLocation().toString())
             .build()
-
 
         val uploadToDbConstraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
@@ -29,7 +36,7 @@ class InitWorkManager(application: Application) {
         val uploadToFbRequest  = OneTimeWorkRequest.Builder(
             UploadToFbWorkManager::class.java)
             .setInputData(inputData)
-            .addTag("fb")
+            .addTag(UPLOADTAG)
             .setConstraints(uploadToFbConstraints).build()
 
         val uploadToDbRequest = OneTimeWorkRequest.Builder(
@@ -49,17 +56,17 @@ class InitWorkManager(application: Application) {
             .setInitialDelay(1000, TimeUnit.MILLISECONDS)
             .build()
 
-        WorkManager.getInstance(app.applicationContext)
+        WorkManager.getInstance(context)
             .beginWith(uploadToDbRequest)
             .then(uploadToFbRequest)
             .enqueue()
 
-        WorkManager.getInstance(app.applicationContext)
+        WorkManager.getInstance(context)
             .beginWith(canceluploadToFb)
             .enqueue()
 
-        WorkManager.getInstance(app.applicationContext)
-            .enqueueUniqueWork("work", ExistingWorkPolicy.REPLACE, uploadFromDbToFbRequest)
+        WorkManager.getInstance(context)
+            .enqueueUniqueWork(WORKTAG, ExistingWorkPolicy.REPLACE, uploadFromDbToFbRequest)
 
     }
 

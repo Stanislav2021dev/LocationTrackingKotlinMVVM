@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -80,11 +81,30 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0-RC'
 
+    //room
+    implementation "androidx.room:room-runtime:2.3.0"
+    kapt "androidx.room:room-compiler:2.3.0"
+
+
+    //Dagger2
+
+    implementation "com.google.dagger:dagger:2.38.1"
+    implementation "com.google.dagger:dagger-android-support:2.38.1"
+    //annotationProcessor "com.google.dagger:dagger-android-processor:2.38.1"
+    //annotationProcessor "com.google.dagger:dagger-compiler:2.38.1"
+
+    kapt "com.google.dagger:dagger-android-processor:2.38.1"
+    kapt "com.google.dagger:dagger-compiler:2.38.1"
+
 
     //firebase
     implementation platform('com.google.firebase:firebase-bom:29.0.1')
     implementation 'com.google.firebase:firebase-analytics-ktx'
     implementation 'com.google.firebase:firebase-auth-ktx:21.0.1'
+    implementation 'com.google.firebase:firebase-firestore-ktx:24.0.0'
+
+
 }
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-kapt'

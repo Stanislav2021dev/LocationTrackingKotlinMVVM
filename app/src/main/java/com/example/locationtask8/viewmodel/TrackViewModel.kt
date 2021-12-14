@@ -7,6 +7,8 @@ import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
+import com.example.locationtask8.di.AppComponent
+import com.example.locationtask8.di.DaggerAppComponent
 import com.example.locationtask8.model.GetCoordinates
 import com.example.locationtask8.model.workmanager.InitWorkManager
 import kotlinx.coroutines.CoroutineScope
@@ -15,16 +17,20 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TrackViewModel(application: Application) : AndroidViewModel(application)  {
-    private val app:Application
-    private val getCoordinates:GetCoordinates
-    private val workManager:InitWorkManager
+class TrackViewModel @Inject constructor(application: Application) : AndroidViewModel(application)  {
+
+
+    @Inject lateinit var getCoordinates:GetCoordinates
+    @Inject lateinit var workManager:InitWorkManager
 
     init {
-        getCoordinates= GetCoordinates(application)
-        workManager= InitWorkManager(application)
-        app=application
+    //    getCoordinates= GetCoordinates(application)
+     //   workManager= InitWorkManager(application)
+      //  app=application
+        val appComponent: AppComponent = DaggerAppComponent.create()
+        appComponent.inject(this)
         resultWork2()
     }
 
