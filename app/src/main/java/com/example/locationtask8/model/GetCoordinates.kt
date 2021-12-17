@@ -2,7 +2,10 @@ package com.example.locationtask8.model
 
 import android.Manifest
 import android.app.Application
+import android.app.PendingIntent
+import android.app.PendingIntent.CanceledException
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Looper
@@ -13,6 +16,7 @@ import com.example.locationtask8.di.AppComponent
 import com.example.locationtask8.di.DaggerAppComponent
 import com.example.locationtask8.view.App
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +36,7 @@ class GetCoordinates  @Inject constructor() :LocationCallback() {
     private lateinit var locationSettingsRequest: LocationSettingsRequest
     private var currentLocation: Location? = null
     private var currentPoint: ResultClass? = null
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var fusedLocationClient: FusedLocationProviderClient?=null
     private val chanel = Channel<ResultClass>(CONFLATED)
 
     init {
@@ -94,13 +98,33 @@ class GetCoordinates  @Inject constructor() :LocationCallback() {
                         return@addOnCompleteListener
                     }
                     else {
-                        fusedLocationClient.requestLocationUpdates(
-                            locationRequest, this,
-                            Looper.myLooper())
+                        fusedLocationClient?.requestLocationUpdates(locationRequest, this, Looper.myLooper())
                     }
                 } catch (except:ApiException) {
+                    when (except.getStatusCode()) {
+                        LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
+                            Log.v("TakeCoordinates", "RESOLUTION_REQUIRED")
+                            try {
+                                val resolvableApiException = except as ResolvableApiException
+                                Log.v("TakeCoordinates", "RESOLUTION_REQUIRED")
+                                val intent = Intent("SHOW_SNACKBAR")
+                                intent.putExtra("ApiException", resolvableApiException.resolution)
+                                val pendingIntent =
+                                    PendingIntent.getBroadcast(App.getContext(), 0, intent, 0)
+                                pendingIntent.send(App.getContext(), 0, intent)
+                            } catch (e: ClassCastException) {
+
+                            }
+                        }
+                        LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE ->
+                            Log.v("TakeCoordinates",  "SETTINGS_CHANGE_UNAVAILABLE")
+                    }
+
                 }
             }
     }
     fun getChan()=chanel
+    fun stopLocationUpdates(){
+        fusedLocationClient?.removeLocationUpdates(this)
+    }
 }

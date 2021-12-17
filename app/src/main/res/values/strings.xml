@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">LocationTask8</string>
+    <string name="chanel_name">BackGroundService</string>
+    <string name="chanel_description">BackgroundNotification</string>
+    <string name="notification_msg">Your current location at</string>
+    <string name="notification_btn_text">Launch Application</string>
 </resources>

@@ -18,13 +18,12 @@ import javax.inject.Inject
 class LoadData @Inject constructor() {
     private val coordinates = HashMap<String, Any>()
     private var uploadSuccess = false
-    private lateinit var coordinatesDataBase:CoordinatesDataBase
+    private var coordinatesDataBase:CoordinatesDataBase
     @Inject
     lateinit var context:Context
 
     @Inject
     lateinit var utils: Utils
-  //  @Inject
 
     @Inject
     lateinit var db:FirebaseFirestore
@@ -45,7 +44,6 @@ class LoadData @Inject constructor() {
             Log.v("TakeCoordinates", "Upload coordinates to local DataBase")
             }
     }
-
 
     fun uploadToFirebase(resultClass: ResultClass) :Boolean {
         coordinates.put("time", resultClass.getCurrentTime())
@@ -69,18 +67,18 @@ class LoadData @Inject constructor() {
 
         val coordinatesModelList: List<CoordinatesModel>
         coordinatesModelList = coordinatesDataBase.getCoordinatesDAO()
-            ?.getAllCoordinates() as List<CoordinatesModel>
+            .getAllCoordinates() as List<CoordinatesModel>
 
         if (coordinatesModelList.size != 0) {
             Log.v("TakeCoordinates", "Upload from DB to Fb")
             for (coord in coordinatesModelList) {
                 Log.v("DATABASE","Time " + coord.dateTime + " coordinates " + coord.coordinates
-                         + "Size " + (coordinatesDataBase.getCoordinatesDAO()?.getAllCoordinates()
+                         + "Size " + (coordinatesDataBase.getCoordinatesDAO().getAllCoordinates()
                         as List<CoordinatesModel>).size
                 )
 
                 uploadToFirebase(ResultClass(coord.dateTime,utils.toLatLng(coord.coordinates)))
-                coordinatesDataBase.getCoordinatesDAO()?.delete(coord.getIdDb())
+                coordinatesDataBase.getCoordinatesDAO().delete(coord.getIdDb())
             }
         }
     }

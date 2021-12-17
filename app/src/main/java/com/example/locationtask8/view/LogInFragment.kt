@@ -15,20 +15,33 @@ import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import com.example.locationtask8.R
 import com.example.locationtask8.databinding.FragmentLoginBinding
+import com.example.locationtask8.di.AppComponent
+import com.example.locationtask8.di.DaggerAppComponent
 import com.example.locationtask8.model.LogInModel
 import com.example.locationtask8.viewmodel.LogInViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import javax.inject.Inject
 
 class LogInFragment: Fragment() {
 
+    @Inject lateinit var auth: FirebaseAuth
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
     private var logInViewModel : LogInViewModel=LogInViewModel(application = Application())
     private lateinit var nav:NavController
 
+    init {
+        val appComponent: AppComponent = DaggerAppComponent.create()
+        appComponent.inject(this)
+
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
+
 
         logInViewModel =
             ViewModelProvider(this).get(LogInViewModel::class.java)
@@ -92,7 +105,9 @@ class LogInFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        if (auth.currentUser!=null){
+            Navigation.findNavController(requireView()).navigate(R.id.action_logInFragment_to_mapsFragment)
+        }
         binding.loginButton.setOnClickListener {
             if (validateEmail() and  validatePassword()) {
                 logInViewModel.logIn(getEmail(),getPassword())

@@ -24,7 +24,6 @@ class UploadToDbWorkManager(context: Context, workerParams: WorkerParameters) : 
     }
 
     override fun doWork(): Result {
-        Log.v("TakeCoordinates","Upload to Db")
         val dateTime = inputData.getString("DateTime")
         val coordinates = inputData.getString("Coordinates")
         loadData.uploadToRoomDb(ResultClass(dateTime!!, utils.toLatLng(coordinates!!)))

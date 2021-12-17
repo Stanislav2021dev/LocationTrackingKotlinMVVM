@@ -3,7 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/stas/AndroidStudioProjects/LocationTask8/app/src/main/res/layout/blank_fragmentq_fragment.xml" value="0.2015625" />
         <entry key="..\:/Users/stas/AndroidStudioProjects/LocationTask8/app/src/main/res/layout/fragment_login.xml" value="0.17553191489361702" />
+        <entry key="..\:/Users/stas/AndroidStudioProjects/LocationTask8/app/src/main/res/menu/frag_menu_items.xml" value="0.2015625" />
       </map>
     </option>
   </component>

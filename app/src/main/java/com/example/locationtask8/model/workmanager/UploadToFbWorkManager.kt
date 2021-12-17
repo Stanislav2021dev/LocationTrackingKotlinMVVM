@@ -30,7 +30,7 @@ class UploadToFbWorkManager(context: Context, workerParams: WorkerParameters) : 
         val coordinates = inputData.getString("Coordinates")
         val result = ResultClass(dateTime!!, utils.toLatLng(coordinates!!))
         val isSuccess: Boolean = loadData.uploadToFirebase(result)
-        if (!isSuccess) { Log.v("TakeCoordinates","Upload to Fb")
+        if (!isSuccess) {
             loadData.uploadToRoomDb(result)
         }
        return Result.success()
