@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_logInFragment_to_mapsFragment"
             app:destination="@id/mapsFragment"
+            app:launchSingleTop="true"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true"
             />
     </fragment>
     <fragment
@@ -23,6 +26,10 @@
 
         <action
             android:id="@+id/action_mapsFragment_to_logInFragment"
-            app:destination="@id/logInFragment" />
+            app:destination="@id/logInFragment"
+            app:launchSingleTop="true"
+            app:popUpTo="@+id/nav_graph"
+            app:popUpToInclusive="true"
+            />
     </fragment>
 </navigation>

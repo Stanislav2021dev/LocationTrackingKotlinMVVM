@@ -1,7 +1,6 @@
 package com.example.locationtask8.model.broadcast_receiver
 
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -14,10 +13,7 @@ import com.example.locationtask8.model.Utils
 import com.example.locationtask8.view.NotificationView
 import javax.inject.Inject
 
-class LocationSettingsChangeBraodcastReceiver : BroadcastReceiver() {
-
-    @Inject
-    lateinit var context:Context
+class LocationSettingsChangerReceiverBackgroundWork:BroadcastReceiver() {
     @Inject
     lateinit var notificationView: NotificationView
     @Inject
@@ -31,23 +27,13 @@ class LocationSettingsChangeBraodcastReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-
         if (LocationManager.GPS_PROVIDER == intent.getStringExtra(LocationManager.EXTRA_PROVIDER_NAME)){
-            Log.v("TakeCoordinates", "Receive broadcast ")
-            if(utils.isAppOnForeground()) {
-
-                  val showSnackbarIntent = Intent("SHOW_SNACKBAR")
-                  val pendingIntent=PendingIntent.getBroadcast(context,0,showSnackbarIntent,0)
-                    pendingIntent.send(context, 0,showSnackbarIntent)
-            }
-            else if (!utils.isGpsEnabled() && !utils.isAppOnForeground()) {
+            if (!utils.isGpsEnabled()) {
                 Log.v("TakeCoordinates", "NotificationError")
                 notificationView.errorNotification()
-               // context.stopService(serviceIntent)
             }
-            else if (utils.isGpsEnabled()&&!utils.isAppOnForeground()){
+            else{
                 serviceIntent = Intent(context, BackGroundService::class.java)
-               // context.startService(serviceIntent)
                 val notificationManager =context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.cancelAll()
             }

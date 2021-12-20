@@ -10,13 +10,6 @@ import com.example.locationtask8.di.DaggerAppComponent
 import javax.inject.Inject
 
 class FinishAppBroadcastReceiver :BroadcastReceiver() {
-    @Inject
-    lateinit var context:Context
-
-    init {
-        val appComponent: AppComponent = DaggerAppComponent.create()
-        appComponent.inject(this)
-    }
 
     override fun onReceive(context: Context?, intent: Intent?) {
         context?.unregisterReceiver(this)

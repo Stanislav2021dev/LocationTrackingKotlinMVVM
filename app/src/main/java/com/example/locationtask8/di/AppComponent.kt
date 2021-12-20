@@ -1,12 +1,10 @@
 package com.example.locationtask8.di
 
 import com.example.locationtask8.database.CoordinatesDataBase
-import com.example.locationtask8.model.BackGroundService
-import com.example.locationtask8.model.GetCoordinates
-import com.example.locationtask8.model.LoadData
-import com.example.locationtask8.model.Utils
+import com.example.locationtask8.model.*
 import com.example.locationtask8.model.broadcast_receiver.FinishAppBroadcastReceiver
-import com.example.locationtask8.model.broadcast_receiver.LocationSettingsChangeBraodcastReceiver
+import com.example.locationtask8.model.broadcast_receiver.LocationSettingsChangeBroadcastReceiverForegroundWork
+import com.example.locationtask8.model.broadcast_receiver.LocationSettingsChangerReceiverBackgroundWork
 import com.example.locationtask8.model.workmanager.*
 import com.example.locationtask8.view.LogInFragment
 import com.example.locationtask8.view.MapsFragment
@@ -49,7 +47,11 @@ interface AppComponent {
 
     fun inject(finishAppBroadcastReceiver: FinishAppBroadcastReceiver)
 
-    fun inject(locationSettingsChangeBraodcastReceiver: LocationSettingsChangeBraodcastReceiver)
+    fun inject(locationSettingsChangeBroadcastReceiverForegroundWork: LocationSettingsChangeBroadcastReceiverForegroundWork)
+
+    fun inject(locationSettingsChangerReceiverBackgroundWork: LocationSettingsChangerReceiverBackgroundWork)
+
+    fun inject(logInModel: LogInModel)
 
     fun getUtils(): Utils?
 

@@ -16,7 +16,7 @@ class LogInViewModel(application: Application) : AndroidViewModel(application) {
 
 
     init {
-        logInModel= LogInModel(application)
+        logInModel= LogInModel()
         getLiveData()
     }
 
