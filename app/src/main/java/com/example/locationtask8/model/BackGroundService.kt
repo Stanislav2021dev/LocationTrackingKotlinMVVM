@@ -24,12 +24,16 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 import kotlinx.coroutines.GlobalScope
+import android.os.Binder
+import com.example.locationtask8.model.BackGroundService.MyBinder
 
 class BackGroundService :Service(),LocationListener {
 
 
     private val NOTIFICATION_ID = 123
     private lateinit var mReceiver:BroadcastReceiver
+    private val mBinder: IBinder = MyBinder()
+    private lateinit var filter:IntentFilter
 
     @Inject
     lateinit var context: Context
@@ -49,34 +53,52 @@ class BackGroundService :Service(),LocationListener {
     }
 
 
-    override fun onBind(intent: Intent?): IBinder? {
-        TODO("Not yet implemented")
-    }
+    override fun onBind(intent: Intent?): IBinder {
+        Log.v("MService","OnBind")
 
-    override fun onCreate() {
-        super.onCreate()
-        Log.v("TakeCoordinates","OnCreate Service")
-        val filter = IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION)
         mReceiver=LocationSettingsChangerReceiverBackgroundWork()
         registerReceiver(mReceiver,filter)
         resultWork()
+        return mBinder
+    }
+
+    override fun onRebind(intent: Intent?) {
+        Log.v("MService","OnReBind")
+        registerReceiver(mReceiver,filter)
+        super.onRebind(intent)
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        Log.v("MService","OnUnBind")
+        getCoordinates.stopLocationUpdates()
+        unregisterReceiver(mReceiver)
+        hideNotification()
+        return !super.onUnbind(intent)
+    }
+
+    class MyBinder : Binder() {
+        fun getService(): BackGroundService {
+            return BackGroundService()
+        }
+    }
+
+
+    override fun onCreate() {
+        super.onCreate()
+        Log.v("MService","OnCreate Service")
+        filter = IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION)
     }
 
     override fun onDestroy() {
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.cancelAll()
-        Log.v("TakeCoordinates","OnDestroyService")
-        getCoordinates.stopLocationUpdates()
-        unregisterReceiver(mReceiver)
+        Log.v("MService","OnDestroyService")
         super.onDestroy()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.v("TakeCoordinates", "OnStart comand")
+        Log.v("MService", "OnStart comand")
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION) ==  PackageManager.PERMISSION_GRANTED) {
             getCoordinates.startLocationGathering(20 * 1000)
-
         }
         return START_STICKY
     }
@@ -85,12 +107,19 @@ class BackGroundService :Service(),LocationListener {
         GlobalScope.launch {
              getCoordinates.getChan().consumeEach {
                 initWorkManager.initWork(it)
+                 Log.v("MService","CREATE NOTIFICATION!!")
                  startForeground(NOTIFICATION_ID, notifications
                      .locationInfoNotification(it.getCurrentLocation().toString()))
             }
         }
     }
 
+    fun hideNotification(){
+        Log.v("MService","HIDE NOTIFICATION!")
+        stopForeground(false)
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.cancelAll()
+    }
     override fun onLocationChanged(p0: Location) {
         TODO("Not yet implemented")
     }

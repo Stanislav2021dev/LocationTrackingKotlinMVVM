@@ -1,14 +1,16 @@
 package com.example.locationtask8.view
 
 import android.Manifest
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.NotificationManager
+import android.app.Service
+import android.content.*
 import android.content.pm.PackageManager
 import android.location.LocationManager.PROVIDERS_CHANGED_ACTION
 import android.net.Uri
 import android.os.Bundle
+import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
 import android.view.*
@@ -28,17 +30,22 @@ import com.example.locationtask8.model.BackGroundService
 import com.example.locationtask8.model.Utils
 import com.example.locationtask8.model.broadcast_receiver.LocationSettingsChangeBroadcastReceiverForegroundWork
 import com.example.locationtask8.viewmodel.TrackViewModel
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import javax.inject.Inject
+import android.content.Intent
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
+import com.google.android.gms.maps.*
+import java.util.*
 
-class MapsFragment : Fragment(), OnMapReadyCallback {
+
+class MapsFragment : Fragment(), OnMapReadyCallback,ServiceConnection {
+
 
     private var _binding: FragmentMapsBinding? = null
     private val binding get() = _binding!!
@@ -48,39 +55,37 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
     private var mMap: GoogleMap?=null
     private var firstCreate: Boolean = true
     private lateinit var apiExeptionReceiver: BroadcastReceiver
-    private var permissionErrorSnackBar: Snackbar? = null
-    private var backgroundSnackBar: Snackbar? = null
-    private var locationErrorSnackBar: Snackbar? = null
+    private var permissionErrorSnackBar: Snackbar?=null
+    private var backgroundSnackBar: Snackbar?=null
+    private var locationErrorSnackBar: Snackbar?=null
     private lateinit var mIntent: Intent
     private var mReceiverForegroundWork: LocationSettingsChangeBroadcastReceiverForegroundWork?= null
     private var flag_action_mapsFragment_to_logInFragment: Boolean = false
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<String>
+    private var mIsBound = false
+    private var mapFragment: SupportMapFragment?=null
+
     @Inject
     lateinit var trackViewModel: TrackViewModel
 
     @Inject
     lateinit var utils: Utils
 
-    @Inject
-    lateinit var snackbar: SnackBarView
-
     init {
         val appComponent: AppComponent = DaggerAppComponent.create()
         appComponent.inject(this)
-
     }
 
     override fun onMapReady(map: GoogleMap) {
-        val sydney = LatLng(-34.0, 151.0)
+        val kyiv = LatLng(50.43, 30.57)
         mMap = map
-        map.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        map.moveCamera(CameraUpdateFactory.newLatLng(sydney))
-
+        map.addMarker(MarkerOptions().position(kyiv).title(getString(R.string.marker_home)))
+        map.moveCamera(CameraUpdateFactory.newLatLng(kyiv))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.v("TakeCoordinates", "OnCreate")
+        Log.v("MService", "ON CREATE!!")
 
         trackViewModel =
             ViewModelProvider(this).get(TrackViewModel::class.java)
@@ -105,17 +110,24 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Log.v("TakeCoordinates", "OnViewCreated")
-        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
-        mapFragment?.getMapAsync(this)
+        mapFragment= (childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?)!!
+        mapFragment!!.getMapAsync(this)
         (activity as AppCompatActivity).setSupportActionBar(binding.toolbar)
     }
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
         if (item.itemId == android.R.id.home) {
             Log.v("TakeCoordinates", "onOptionsItemSelected")
             FirebaseAuth.getInstance().signOut()
-            Navigation.findNavController(requireView()).navigate(R.id.action_mapsFragment_to_logInFragment)
+            val manager: FragmentManager = requireActivity().supportFragmentManager
+            val transaction: FragmentTransaction = manager.beginTransaction()
+            transaction.addToBackStack("mm")
+            transaction.replace(R.id.activity_main_navHostFragment, LogInFragment())
+            transaction.commit()
+
+
             flag_action_mapsFragment_to_logInFragment=true
 
             if (backgroundSnackBar?.isShown == true) {
@@ -147,41 +159,42 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
                 trackViewModel.start()
             }
             else {
-                Log.v("TakeCoordinates", "NEW SNACKBAR")
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.parse("package:" + (context?.packageName)))
-                permissionErrorSnackBar=snackbar.createSnackBar(requireContext(), "Location permission needed", "Allow permission", intent)
+              showPermissionSnackBar()
             }
         }
     }
 
-
-
-
     override fun onStart() {
         super.onStart()
-        Log.v("TakeCoordinates", "OnStart, Stop Service")
-        context?.stopService(mIntent)
+        Log.v("MService","ON START!!")
         requestPermissionLauncher.launch(FINE_LOCATION)
     }
 
     override fun onResume() {
         super.onResume()
+        Log.v("MService","ON RESUME!!")
         Log.v("TakeCoordinates", "On Resume")
         if (checkSelfPermission(requireContext(), BACKGROUND_LOCATION) ==
             PackageManager.PERMISSION_GRANTED){
             backgroundSnackBar?.dismiss()
         }
+
+        doUnbindService()
         hideLocationErrorSnackBar()
-        createLocationErrorSnackBar()
+        showLocationErrorSnackBar()
     }
 
-
+    override fun onPause() {
+        super.onPause()
+        doBindService()
+    }
 
     override fun onStop() {
         super.onStop()
         Log.v("TakeCoordinates", "OnSTOP!!!")
-        if (flag_action_mapsFragment_to_logInFragment==false) {
+
+        if (flag_action_mapsFragment_to_logInFragment==false ) {
+            Log.v("MService","Service start")
             context?.startService(mIntent)
         }
         if (!firstCreate){
@@ -194,21 +207,26 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.v("MService","ON DESTROYYY!!")
         Log.v("TakeCoordinates", "OnDestroy")
         trackViewModel.getCoordinates.stopLocationUpdates()
         context?.stopService(mIntent)
+
     }
 
+
+    override fun onDestroyView() {
+        _binding=null
+        mMap?.clear()
+        mapFragment?.onDestroy()
+        mapFragment=null
+        super.onDestroyView()
+    }
 
     private fun checkBackgroundPermission() {
         if (checkSelfPermission(requireContext(), BACKGROUND_LOCATION) !=
             PackageManager.PERMISSION_GRANTED) {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                Uri.parse("package:" + (context?.packageName)))
-            backgroundSnackBar = snackbar.createSnackBar(requireContext(),
-                "To enable background work, " +
-                        "please turn on 'Allow all the time' for this application",
-                "Allow", intent)
+            showBackgroundPermissionSnackBar()
         }
     }
 
@@ -227,18 +245,27 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
             override fun onReceive(context: Context, intent: Intent) {
                 Log.v("TakeCoordinates", "ApiExeprion Receiver")
                 hideLocationErrorSnackBar()
-                createLocationErrorSnackBar()
+                showLocationErrorSnackBar()
             }
         }
     }
 
-    fun createLocationErrorSnackBar(){
+    fun showLocationErrorSnackBar(){
         if (utils.isAppOnForeground() && !utils.isGpsEnabled()) {
-            Log.v("TakeCoordinates", "ERROR SNACKBAR")
-            val turnOnLocationIntent =
-                Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            locationErrorSnackBar=snackbar.createSnackBar(requireContext(),
-                "Turn On Location Settings","OK",turnOnLocationIntent)
+        if (locationErrorSnackBar == null) {
+            val parentActivity : FragmentActivity? = this.activity
+            if (parentActivity != null) {
+                Log.v("TakeCoordinates", "ERROR SNACKBAR")
+                val turnOnLocationIntent =
+                    Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                locationErrorSnackBar=createSnackBar(requireContext(),
+                    getString(R.string.location_error_snackBar),getString(R.string.action_OK),
+                    turnOnLocationIntent,parentActivity)
+                locationErrorSnackBar!!.show()
+            }
+        }
+            else
+                locationErrorSnackBar!!.show()
         }
     }
 
@@ -247,4 +274,71 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
             locationErrorSnackBar?.dismiss()
         }
     }
+
+    fun showBackgroundPermissionSnackBar(){
+        if (backgroundSnackBar == null) {
+            val parentActivity : FragmentActivity? = this.activity
+            if (parentActivity != null) {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.parse("package:" + (context?.packageName)))
+                backgroundSnackBar = createSnackBar(requireContext(),
+                    getString(R.string.background_snackBar_1) +
+                            getString(R.string.background_snackBar_2),
+                    getString(R.string.action_allow), intent,parentActivity)
+                backgroundSnackBar!!.show()
+            }
+       }
+        else
+            backgroundSnackBar!!.show()
+
+    }
+
+    fun showPermissionSnackBar(){
+        Log.v("TakeCoordinates", "NEW SNACKBAR")
+        if (permissionErrorSnackBar == null) {
+             val parentActivity : FragmentActivity? = this.activity
+            if (parentActivity != null) {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.parse("package:" + (context?.packageName)))
+                permissionErrorSnackBar=createSnackBar(requireContext(),
+                    getString(R.string.permission_snackBar), getString(R.string.action_allow_perm), intent,parentActivity)
+                permissionErrorSnackBar!!.show()
+            }
+        }
+        else
+            permissionErrorSnackBar!!.show()
+    }
+
+
+    override fun onServiceConnected(componentname: ComponentName?, binder: IBinder?) {
+        Log.v("MService","onServiceConnected")
+        mIsBound = true
+
+    }
+
+    override fun onServiceDisconnected(componentname: ComponentName?) {
+        Log.v("MService","onServiceDisconnected")
+        mIsBound = false
+    }
+    fun doBindService() {
+        Log.v("MService","DO BIND SERVICE!!")
+       context?.bindService(Intent(requireActivity(),BackGroundService::class.java),
+           this,Context.BIND_AUTO_CREATE)
+    }
+    fun doUnbindService() {
+        if (mIsBound) {
+            Log.v("MService","DO UNBIND SERVICE!!")
+            context?.unbindService(this)
+        }
+    }
+
+    fun createSnackBar(context: Context, maitText:String, action:String, intent: Intent,fragmentActivity: FragmentActivity) :Snackbar{
+        val snackbar=Snackbar.make(fragmentActivity.findViewById(android.R.id.content),
+            maitText, Snackbar.LENGTH_INDEFINITE).setAction(action) {
+            requireActivity().finish()
+            context.startActivity(intent)
+        }
+        return snackbar
+    }
+
 }

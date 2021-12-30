@@ -44,7 +44,6 @@ class MapsModule {
     @Provides
     fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
 
-    //@Provides
- //   fun provideCoordinatesDataBase(): CoordinatesDataBase? = CoordinatesDataBase.getInstance(provideContext())
+
 
 }

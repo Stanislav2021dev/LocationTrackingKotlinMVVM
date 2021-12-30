@@ -9,6 +9,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
@@ -25,6 +27,7 @@ import javax.inject.Inject
 
 class LogInFragment: Fragment() {
 
+
     @Inject lateinit var auth: FirebaseAuth
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
@@ -40,33 +43,31 @@ class LogInFragment: Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-
-
         logInViewModel =
             ViewModelProvider(this).get(LogInViewModel::class.java)
 
         logInViewModel.getUserLogInLiveData().observe(this, Observer {
             Log.v("User", "User "+ it)
-            authSuccess( "Login success",it)
+            authSuccess( getString(R.string.login_success),it)
         })
 
         logInViewModel.getUserSignUpLiveData().observe(this,{
-               authSuccess("Account created",it)
+               authSuccess(getString(R.string.account_created),it)
         })
         logInViewModel.getExceptionLiveData().observe(this, Observer {
             if (it != null) {
-                Toast.makeText(context,"Authorisation failed! "+it.message,Toast.LENGTH_LONG).show()
+                Toast.makeText(context,getString(R.string.auth_fail)+it.message,Toast.LENGTH_LONG).show()
             }
         })
     }
+
 
     fun getEmail() :String = binding.textInputEmail.text.toString()
     fun getPassword():String = binding.textInputPassword.text.toString()
 
     fun validateEmail():Boolean {
         if (getEmail().isEmpty()){
-            binding.textInputEmail.setError("Enter email")
+            binding.textInputEmail.setError(getString(R.string.empty_email))
             return false
         }
         else{
@@ -77,7 +78,7 @@ class LogInFragment: Fragment() {
 
     fun validatePassword():Boolean{
         if (getPassword().isEmpty()){
-            binding.textInputPassword.setError("EnterPasword")
+            binding.textInputPassword.setError(getString(R.string.empty_password))
             return false
         }
         else{
@@ -86,12 +87,20 @@ class LogInFragment: Fragment() {
         }
     }
 
+
     fun authSuccess(msg:String, user:FirebaseUser?){
         if (user!=null){
             Toast.makeText(context,msg ,Toast.LENGTH_LONG).show()
-            nav  = Navigation.findNavController(requireView())
-            nav.navigate(R.id.action_logInFragment_to_mapsFragment)
-          //  nav.backStack.clear()
+          //  nav  = Navigation.findNavController(requireView())
+
+           // nav.navigate(LogInFragmentDirections.actionLogInFragmentToMapsFragment())
+           // nav.popBackStack(R.id.logInFragment,true)
+
+            val manager: FragmentManager = requireActivity().supportFragmentManager
+            val transaction: FragmentTransaction = manager.beginTransaction()
+            transaction.addToBackStack("ll")
+            transaction.replace(R.id.activity_main_navHostFragment, MapsFragment())
+            transaction.commit()
         }
     }
 
@@ -119,5 +128,12 @@ class LogInFragment: Fragment() {
                 logInViewModel.signUp(getEmail(),getPassword())
             }
         }
+    }
+
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding=null
+
     }
 }

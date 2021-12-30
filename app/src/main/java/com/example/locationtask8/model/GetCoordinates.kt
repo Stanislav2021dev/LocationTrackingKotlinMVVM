@@ -125,6 +125,7 @@ class GetCoordinates  @Inject constructor() :LocationCallback() {
     }
     fun getChan()=chanel
     fun stopLocationUpdates(){
+        Log.v("MService","STOPLOCATIONUPDATES")
         fusedLocationClient?.removeLocationUpdates(this)
     }
 }

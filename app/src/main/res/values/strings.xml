@@ -4,4 +4,19 @@
     <string name="chanel_description">BackgroundNotification</string>
     <string name="notification_msg">Your current location at</string>
     <string name="notification_btn_text">Launch Application</string>
+    <string name="notification_close">Close app</string>
+    <string name="marker_home">Marker in Kyiv</string>
+    <string name="location_error_snackBar">Turn On Location Settings</string>
+    <string name="action_OK">OK</string>
+    <string name="background_snackBar_1">To enable background work, </string>
+    <string name="background_snackBar_2">please turn on "Allow all the time" for this application</string>
+    <string name="action_allow">Allow</string>
+    <string name="permission_snackBar">Location permission needed</string>
+    <string name="action_allow_perm">Allow permission</string>
+    <string name="notification_error">Turn On Location Settings</string>
+    <string name="login_success">Login success</string>
+    <string name="account_created">Account created</string>
+    <string name="auth_fail">Authorisation failed! </string>
+    <string name="empty_email">Enter email</string>
+    <string name="empty_password">Enter password</string>
 </resources>

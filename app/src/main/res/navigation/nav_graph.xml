@@ -9,7 +9,8 @@
         android:id="@+id/logInFragment"
         android:name="com.example.locationtask8.view.LogInFragment"
         android:label="fragment_login"
-        tools:layout="@layout/fragment_login" >
+        tools:layout="@layout/fragment_login"
+        >
         <action
             android:id="@+id/action_logInFragment_to_mapsFragment"
             app:destination="@id/mapsFragment"

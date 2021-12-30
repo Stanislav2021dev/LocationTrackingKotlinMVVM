@@ -7,12 +7,17 @@ import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
+import androidx.core.content.ContextCompat
 import com.example.locationtask8.di.AppComponent
 import com.example.locationtask8.di.DaggerAppComponent
 import com.google.android.gms.maps.model.LatLng
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
+import androidx.core.content.ContextCompat.getSystemService
+
+
+
 
 class Utils @Inject constructor() {
 
@@ -59,5 +64,18 @@ class Utils @Inject constructor() {
         val longitude = latlong[1].replace(")", "").toDouble()
         return LatLng(latitude, longitude)
     }
+
+     fun isMyServiceRunning(): Boolean {
+        val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager
+            .getRunningServices(Int.MAX_VALUE)) {
+            if (BackGroundService::class.java.getName() ==
+                service.service.className) {
+                return true
+            }
+        }
+        return false
+    }
+
 
 }

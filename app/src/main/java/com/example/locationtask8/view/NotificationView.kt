@@ -42,7 +42,7 @@ class NotificationView @Inject constructor() {
         return NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
 
             .addAction(R.mipmap.ic_launcher_round, context.getString(R.string.notification_btn_text) , startActivityPendingIntent)
-            .addAction(R.mipmap.ic_launcher_round,"Close App",closeAppPendingIntent)
+            .addAction(R.mipmap.ic_launcher_round,context.getString(R.string.notification_close),closeAppPendingIntent)
             .setSmallIcon(R.drawable.ic_baseline_launch_24)
             .setContentText(context.getString(R.string.notification_msg)+" "+msg)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -60,7 +60,7 @@ class NotificationView @Inject constructor() {
 
         val notification =  NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_baseline_launch_24)
-            .addAction(R.mipmap.ic_launcher_round,"Turn On Location Settings", turnOnLocationSettingsPendingIntent)
+            .addAction(R.mipmap.ic_launcher_round,context.getString(R.string.notification_error), turnOnLocationSettingsPendingIntent)
             .setContentTitle("Error")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(turnOnLocationSettingsPendingIntent)
